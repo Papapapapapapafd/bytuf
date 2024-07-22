@@ -1,0 +1,471 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Anti Bytów-Roleplay - " .. "0.2",
+    SubTitle = "",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true, -- The blur may be detectable, setting this to false disables blur entirely
+    Theme = "Darker",
+    MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
+})
+
+-- Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
+local Tabs = {
+    Main = Window:AddTab({ Title = "Main", Icon = "https://lucide.dev/icons/house" }),
+    PraceWin = Window:AddTab({ Title = "Prace", Icon = "https://lucide.dev/icons/house" }),
+    DealerzyWin = Window:AddTab({ Title = "Dealerzy", Icon = "https://lucide.dev/icons/house" }),
+}
+
+local Options = Fluent.Options
+
+do
+    Fluent:Notify({
+        Title = "Powiadomienie - Anti bytuf rolplej",
+        Content = "Załądowano gui",
+        Duration = 8
+    })
+
+    game.ReplicatedStorage.GuiStorage.Frakcje:Clone().Parent = game.Players.LocalPlayer.PlayerGui
+    game.Players.LocalPlayer.PlayerGui.Frakcje.Frame.Frakcja.Text = "Anti bytuf rolplej"
+
+    local Toggle = Tabs.Main:AddToggle("MyToggle", {Title = "Roślinki ESP", Default = false })
+
+
+    
+    local espElements = {}
+
+    local function AddESP(element, labelText)
+        local billboardGui = Instance.new("BillboardGui")
+        billboardGui.Name = "ESP"
+        billboardGui.AlwaysOnTop = true
+        billboardGui.Size = UDim2.new(1, 0, 1, 0)
+        billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+        billboardGui.Parent = element
+
+        local frame = Instance.new("Frame")
+        frame.BackgroundTransparency = 1
+        frame.Size = UDim2.new(1, 0, 1, 0)
+        frame.Parent = billboardGui
+
+        local outline = Instance.new("Frame")
+        outline.BackgroundTransparency = 0
+        outline.BackgroundColor3 = Color3.fromRGB(255, 159, 13)
+        outline.BorderSizePixel = 2
+        outline.Size = UDim2.new(1, 4, 1, 4)
+        outline.Position = UDim2.new(-0.5, -2, -0.5, -2)
+        outline.Parent = frame
+
+        -- Dodanie UICorner dla zaokrąglonych rogów
+        local uiCorner = Instance.new("UICorner")
+        uiCorner.CornerRadius = UDim.new(0, 50)
+        uiCorner.Parent = outline
+
+        local label = Instance.new("TextLabel")
+        label.Name = "ESPLabel"
+        label.BackgroundTransparency = 1
+        label.Size = UDim2.new(1, 0, 0, 20)
+        label.Position = UDim2.new(0, 0, 1, 0)
+        label.Text = labelText
+        label.TextColor3 = Color3.new(1, 1, 1)
+        label.TextStrokeTransparency = 0.5
+        label.Parent = billboardGui
+
+
+        table.insert(espElements, billboardGui)
+    end
+
+ 
+    local function AddESPToFolder(folder, selectedPartName)
+        for _, model in ipairs(folder:GetChildren()) do
+            if model:IsA("Model") then
+                local selectedPart = model:FindFirstChild(selectedPartName)
+                if selectedPart and selectedPart:IsA("BasePart") then
+                    AddESP(selectedPart, selectedPart.Name)
+                end
+            end
+        end
+    end
+
+    local function RemoveESP()
+        for _, esp in ipairs(espElements) do
+            esp:Destroy()
+        end
+        espElements = {}
+    end
+
+    Toggle:OnChanged(function()
+        if Toggle.Value then
+            local folder = workspace:FindFirstChild("Roslinki")
+            if folder then
+                local selectedPartName = "RoslinkaHitbox"
+                AddESPToFolder(folder, selectedPartName)
+            else
+               Fluent:Notify({
+                 Title = "Powiadomienie - Anti bytuf rolplej",
+                 Content = "Nie znaleziono folderu",
+                 Duration = 5
+                })
+            end
+        else
+            RemoveESP()
+        end
+    end)
+    local ToggleESPNPC = Tabs.Main:AddToggle("MyToggle", {Title = "ESP na NPC", Default = false })
+    ToggleESPNPC:OnChanged(function()
+    
+    end)
+
+    Options.MyToggle:SetValue(false)
+
+local Toggle = Tabs.Main:AddToggle("PlayerESP", {Title = "Player ESP", Default = false })
+
+local espElements = {}
+
+-- Function to get the color based on the player's team
+local function getTeamColor(player)
+    if player.Team then
+        return player.Team.TeamColor.Color
+    else
+        return Color3.new(1, 0, 0) -- default color (red) if no team is assigned
+    end
+end
+
+local function AddESP(player)
+    if player.Character and player.Character:FindFirstChild("Head") then
+        local billboardGui = Instance.new("BillboardGui")
+        billboardGui.Name = "TadachiisESPTags"
+        billboardGui.Adornee = player.Character.Head
+        billboardGui.Size = UDim2.new(0, 100, 0, 50)
+        billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+        billboardGui.AlwaysOnTop = true
+        billboardGui.LightInfluence = 1
+        billboardGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        billboardGui.Parent = player.Character.Head
+
+        local textLabel = Instance.new("TextLabel")
+        textLabel.Name = "NameLabel"
+        textLabel.Size = UDim2.new(1, 0, 1, 0)
+        textLabel.BackgroundTransparency = 1
+        textLabel.TextScaled = true
+        textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+        textLabel.TextStrokeTransparency = 0
+        textLabel.Parent = billboardGui
+
+        -- Set the initial color based on the team
+        textLabel.TextColor3 = getTeamColor(player)
+
+        table.insert(espElements, billboardGui)
+    end
+end
+
+local function RemoveESP()
+    for _, esp in ipairs(espElements) do
+        esp:Destroy()
+    end
+    espElements = {}
+end
+
+local function updatePlayerESP()
+    if not Toggle.Value then
+        return
+    end
+
+    local localCharacter = game.Players.LocalPlayer.Character
+    if not localCharacter then
+        return
+    end
+
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("Humanoid") then
+            local distance = (localCharacter.Head.Position - player.Character.Head.Position).Magnitude
+            local health = player.Character.Humanoid.Health
+            local maxHealth = player.Character.Humanoid.MaxHealth
+            local billboardGui = player.Character.Head:FindFirstChild("TadachiisESPTags")
+            if not billboardGui then
+                AddESP(player)
+            else
+                billboardGui.NameLabel.Text = player.Name .. "\nDistance: " .. math.floor(distance) .. "\nHP: " .. math.floor(health)
+                -- Update the color based on the team
+                billboardGui.NameLabel.TextColor3 = getTeamColor(player)
+            end
+        end
+    end
+end
+
+Toggle:OnChanged(function()
+    if Toggle.Value then
+        updatePlayerESP()
+    else
+        RemoveESP()
+    end
+end)
+
+game:GetService("RunService").Heartbeat:Connect(function()
+    updatePlayerESP()
+end)
+
+
+end
+
+local Button = Tabs.Main:AddButton({Title = "ESP na NPC", Callback = function()
+    local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local camera = workspace.CurrentCamera
+local activeElements = {}
+
+local function hasHumanoid(model)
+    return model:FindFirstChildOfClass("Humanoid") ~= nil
+end
+
+local function createElement(model)
+    local line = Drawing.new("Line")
+    line.Color = Color3.fromRGB(255, 0, 0)
+    line.Thickness = 3
+    line.Transparency = 0.5
+
+    local label = Drawing.new("Text")
+    label.Size = 16
+    label.Center = true
+    label.Outline = true
+    label.Color = Color3.fromRGB(255, 255, 255)
+    label.Transparency = 0.8
+
+    activeElements[model] = {line = line, label = label}
+
+    local connection
+    connection = game:GetService("RunService").RenderStepped:Connect(function()
+        if model.Parent == workspace then
+            local modelCenter = model:GetModelCFrame().p
+            local screenPos, onScreen = camera:WorldToViewportPoint(modelCenter)
+            local distance = (character.Head.Position - modelCenter).Magnitude
+
+            if onScreen then
+                line.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+                line.To = Vector2.new(screenPos.X, screenPos.Y)
+                line.Visible = true
+
+                label.Position = Vector2.new(screenPos.X, screenPos.Y - 20)
+                label.Text = string.format("Distance: %.2f", distance)
+                label.Visible = true
+            else
+                line.Visible = false
+                label.Visible = false
+            end
+        else
+            line.Visible = false
+            label.Visible = false
+            connection:Disconnect()
+            activeElements[model] = nil
+        end
+    end)
+end
+
+local function trackModels()
+    for model, elements in pairs(activeElements) do
+        elements.line.Visible = false
+        elements.line:Remove()
+        elements.label.Visible = false
+        elements.label:Remove()
+        activeElements[model] = nil
+    end
+
+    for _, model in ipairs(workspace:GetChildren()) do
+        if model:IsA("Model") and tonumber(model.Name) and model.Parent == workspace and hasHumanoid(model) then
+            if not activeElements[model] then
+                createElement(model)
+            end
+        end
+    end
+end
+
+workspace.ChildAdded:Connect(function(child)
+    if child:IsA("Model") and tonumber(child.Name) and child.Parent == workspace and hasHumanoid(child) then
+        createElement(child)
+    end
+end)
+
+workspace.ChildRemoved:Connect(function(child)
+    if child:IsA("Model") and tonumber(child.Name) and activeElements[child] then
+        activeElements[child].line.Visible = false
+        activeElements[child].line:Remove()
+        activeElements[child].label.Visible = false
+        activeElements[child].label:Remove()
+        activeElements[child] = nil
+    end
+end)
+
+trackModels()
+
+game:GetService("RunService").Stepped:Connect(function()
+    trackModels()
+end)
+end})
+
+local Button = Tabs.Main:AddButton({Title = "infiniteyield", Callback = function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+end})
+
+local Button = Tabs.Main:AddButton({Title = "Usuń fotoradary", Callback = function()
+    for _,foto in pairs(game.workspace:GetChildren()) do
+    if foto.Name == "Model" and foto:FindFirstChild("lamp") and foto:FindFirstChild("lamp"):FindFirstChild("SpotLight") then
+        foto:Destroy()
+        Fluent:Notify({
+        Title = "Powiadomienie - Anti bytuf rolplej",
+        Content = "Usunięto fotoradary",
+         Duration = 4
+        })
+    end    
+end
+end})
+
+local PrzyciskGlovo = Tabs.Main:AddButton({Title = "Szybka ucieczka", Callback = function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Workspace:WaitForChild("Sklepy"):FindFirstChild("ABC").CFrame
+end})
+
+
+
+
+----------------------------------------------
+
+
+
+local PrzyciskGlovo = Tabs.PraceWin:AddButton({Title = "Turbo glovo", Callback = function()
+local plr = game.Players.LocalPlayer
+local char = plr.Character
+local glovo_punkty_dostawy = game.workspace:WaitForChild("Lokalizacje")
+local branie_glovo = game.workspace:WaitForChild("Restauracje"):WaitForChild("Bar")
+local toogle = true
+
+game.workspace:FindFirstChild("DuzeMieszkaniePrompt").ProximityPrompt.Enabled = false
+
+
+Fluent:Notify({
+    Title = "Powiadomienie - Anti bytuf rolplej",
+    Content = "Rozpoczęto prace (spam 'E') - czekam 5 sekund",
+    Duration = 5
+})
+Wait(5)
+while wait(0.5) do
+    if toogle == true then
+    branie_glovo.ProximityPrompt.HoldDuration = 0
+    branie_glovo.ProximityPrompt.RequiresLineOfSight = false
+
+
+
+    wait(0.5)
+        char.HumanoidRootPart.CFrame = branie_glovo.CFrame
+        Fluent:Notify({
+        Title = "Powiadomienie - Anti bytuf rolplej",
+        Content = "Weź dostawe - czekam 1 sekund",
+        Duration = 0.1
+        })
+    wait(0.5)
+        for _, oddanie in pairs(glovo_punkty_dostawy:GetChildren()) do
+          if oddanie:FindFirstChild("Glovo") then
+              char.HumanoidRootPart.CFrame = oddanie.CFrame
+              oddanie.ProximityPrompt.HoldDuration = 0
+              oddanie.ProximityPrompt.RequiresLineOfSight = false
+          end
+          Fluent:Notify({
+          Title = "Powiadomienie - Anti bytuf rolplej",
+          Content = "Oddaj dostawe - czekam 5 sekund",
+          Duration = 0.1
+          })
+        end
+    end
+end
+end})
+
+
+local PrzyciskMagaz = Tabs.PraceWin:AddButton({Title = "Turbo magazynier", Callback = function()
+    Fluent:Notify({
+    Title = "Powiadomienie - Anti bytuf rolplej",
+    Content = "Przyśpieszono proces pracy.",
+    Duration = 5
+    })
+    game.workspace:FindFirstChild("StrefaRozladunek").ProximityPrompt.HoldDuration = 0
+    game.workspace:FindFirstChild("StrefaRozladunek").ProximityPrompt.RequiresLineOfSight = false
+    game.workspace:FindFirstChild("StrefaRozladunek").ProximityPrompt.Triggered:Connect(function()
+        for _,odlozmag in pairs(game.workspace:WaitForChild("Sortowanie"):GetChildren()) do
+            if odlozmag:FindFirstChild("ProximityPrompt") then
+                odlozmag.ProximityPrompt.HoldDuration = 0
+                odlozmag.ProximityPrompt.RequiresLineOfSight = false
+                
+            end
+        end
+    end)
+end})  
+
+local PrzyciskMagaV2 = Tabs.PraceWin:AddButton({Title = "Turbo magazynier V2", Callback = function()
+    local plr = game.Players.LocalPlayer
+    local char = plr.Character
+
+    game.Workspace.StrefaRozladunek.ProximityPrompt.HoldDuration = 0
+    game.Workspace.StrefaRozladunek.ProximityPrompt.RequiresLineOfSight = false
+
+    while wait(0.2) do
+        for _, sortowanie in pairs(game.workspace.Sortowanie:GetChildren()) do
+            if sortowanie:FindFirstChild("ProximityPrompt") then
+                sortowanie.ProximityPrompt.HoldDuration = 0
+                sortowanie.ProximityPrompt.RequiresLineOfSight = false
+                char.HumanoidRootPart.CFrame = sortowanie.CFrame
+                wait(1)
+                char.HumanoidRootPart.CFrame = game.Workspace.StrefaRozladunek.CFrame
+            end
+        end
+    end
+end})
+
+-- dealerzy
+-- dealerzy
+-- dealerzy
+-- dealerzy
+-- dealerzy
+-- dealerzy
+-- dealerzy
+-- dealerzy
+-- dealerzy
+-- dealerzy
+-- dealerzy
+
+local PrzyciskDealerBroni = Tabs.DealerzyWin:AddButton({Title = "Bronie", Callback = function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Workspace:WaitForChild("Sklepy"):FindFirstChild("Stokrotka").CFrame
+end})
+
+local PrzyciskDealerSadzonek = Tabs.DealerzyWin:AddButton({Title = "Sadzonki", Callback = function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Workspace:WaitForChild("Sklepy"):FindFirstChild("Ogrodnik").CFrame
+end})
+
+local PrzyciskDealerRzeczy = Tabs.DealerzyWin:AddButton({Title = "Przedmioty", Callback = function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Workspace:WaitForChild("Sklepy"):FindFirstChild("Dino").CFrame
+end})
+
+local PrzyciskDealerBudowlaniec = Tabs.DealerzyWin:AddButton({Title = "Budowlaniec", Callback = function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Workspace:WaitForChild("Sklepy"):FindFirstChild("Budowlaniec").CFrame
+end})
+
+local PrzyciskDealerMajster = Tabs.DealerzyWin:AddButton({Title = "Majster Klepka", Callback = function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Workspace:WaitForChild("Sklepy"):FindFirstChild("MajsterKlepka").CFrame
+end})
+
+
+
+
+
+
+
+
+SaveManager:SetIgnoreIndexes({})
+
+InterfaceManager:SetFolder("FluentScriptHub")
+SaveManager:SetFolder("FluentScriptHub/specific-game")
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+Window:SelectTab(1)
+
+SaveManager:LoadAutoloadConfig()
